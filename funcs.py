@@ -3,6 +3,7 @@ import numpy as np
 import scipy as sp
 import collections as collections
 import math
+import sys
 
 
 
@@ -81,8 +82,64 @@ def getConditionalEntropy_Numeric(data, meta, feature, feature_map):
     # for each candidate split, evaluate entropy and use the candidate split
     # that gives you the lowest entropy
 
+    minSplit = sys.maxint
+    minEntropy = sys.maxint
     for i, split in enumerate(candidate_splits):
+
+        cond_entropy_under_threshold = 0
+        cond_entropy_above_threshold = 0
+        counts_under_candidate_split = []
+        counts_above_candidate_split = []
+
+        # iterate through the data and obtain values for class
+        # for numeric values less than and above a given value
+        for i in range(len(data)):
+            if data[feature][i] < split:
+                counts_under_candidate_split.append(data['class'][i])
+            else:
+                counts_above_candidate_split.append(data['class'][i])
         
+        # get counts for each branch 
+        counts_under_candidate_split = dict(collections.Counter(counts_under_candidate_split))
+        counts_above_candidate_split = dict(collections.Counter(counts_above_candidate_split))
+
+        # get the total counts
+        counts_under_candidate_split_total = sum(counts_under_candidate_split)
+        counts_above_candidate_split_total = sum(counts_above_candidate_split)
+
+        # obtain conditional entropy for both branches
+        for key in list(counts_under_candidate_split.keys()):
+            cond_entropy_under_threshold += -(counts_under_candidate_split[key]/counts_under_candidate_split_total)* \
+                                (math.log((counts_under_candidate_split[key]/counts_under_candidate_split_total), 2))
+        
+        for key in list(counts_above_candidate_split.keys()):
+            cond_entropy_above_threshold += -(counts_above_candidate_split[key]/counts_above_candidate_split_total)* \ 
+                                (math.log((counts_above_candidate_split[key]/counts_above_candidate_split_total),2))
+        
+        # compute the weighted entropy
+        temp_total_weighted_entropy =  (counts_under_candidate_split_total/len(data))*cond_entropy_under_threshold + 
+                                        (counts_above_candidate_split_total/len(data))*cond_entropy_above_threshold
+    
+        # check if the new computed weighted entropy is lower than than the current
+        if temp_total_weighted_entropy < minEntropy:
+            minEntropy = temp_total_weighted_entropy
+            minSplit = split
+        
+        
+
+        
+
+
+
+
+
+
+                
+
+
+
+
+
 
 
 
