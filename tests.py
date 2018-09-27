@@ -9,10 +9,8 @@ def testGetConditionalEntropy_Numeric():
     data, meta = readData(trainFile)
     feature = 'age'
     feature_map = getUniqueFeatures(data, meta)
-    print("Entropy for Feature " + age + " = " + getConditionalEntropy_Numeric(data, 
-                                                                meta,
-                                                                feature,
-                                                                feature_map))
+    minSplit, minEntropy = getConditionalEntropy_Numeric(data, meta, feature, feature_map)
+    print("Entropy for Feature" + feature + " :  " + "ENTROPY = " + str(minEntropy) + "| " + "MINSPLIT = "  + str(minSplit)) 
 
 
 
