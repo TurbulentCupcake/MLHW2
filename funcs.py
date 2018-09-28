@@ -178,3 +178,24 @@ def getInfoGain(data, meta, feature):
         return infogain
 
 
+def createNode(data, meta):
+    """
+        This function recursively builds the tree for a given dataset,
+        Returns a DTNode object
+    """
+    
+
+    
+
+def train(data, meta):
+    """
+        Simple function to train the data 
+    """
+    # Once we are in this function, we must begin to work on tree building part.
+    # So, this function will begin to execute the a tree building set of functions
+    # here on out. 
+
+    # Step 1
+    # call a function node to create the first node of the tree
+
+    createNode(data, meta)
