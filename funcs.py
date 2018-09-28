@@ -4,6 +4,7 @@ import scipy as sp
 import collections as collections
 import math
 import sys
+from DataManipulations import *
 
 
 
@@ -139,41 +140,21 @@ def getConditionalEntropy_Numeric(data, meta, feature, feature_map):
         
 
 
-        
-
-
-
-
-
-
-                
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-def getInfoGain(data, type, feature):
+def getInfoGain(data, meta, feature):
     """
         Function to compute information gain for a given numeric feature.
-
+        Returns a numeric split and info gain for numeric features
+        Returns only info gain for nominal features
     """
+
+    feature_map = getUniqueFeatures(data, meta)
 
     # Step 1
     # For the selected feature, find the number of labels that have
     # positive and the number that have negative.
     # Using this compute the entropy for the feature itself
+
+    parentEntropy = getEntropyParent(data, feature)
 
     # Step 2
     # This is the important part. Here, we have to compute the
@@ -186,3 +167,14 @@ def getInfoGain(data, type, feature):
     # Step 3
     # Finally, just subtract the value of step 3 from step 2
     # Return answer
+
+    if meta.types()[meta.names().index(feature)] == 'numeric':
+        numericSplit, numericEntropy = getConditionalEntropy_Numeric(data, meta, feature, feature_map)
+        infogain = parentEntropy - numericEntropy
+        return numericSplit, infogain
+    else:
+        nominalEntropy = getConditionalEntropy_Nominal(data, meta, feature, feature_map)
+        infogain = parentEntropy - nominalEntropy
+        return infogain
+
+
