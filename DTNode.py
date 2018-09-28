@@ -5,8 +5,8 @@ class DTNode(object):
         Node for each tree.
     """
 
-    def __init__(self, feature):
-        self.feature = feature
+    def __init__(self):
+        self.feature = None
         self.children = []
         self.isLeaf = False
         self.value = None

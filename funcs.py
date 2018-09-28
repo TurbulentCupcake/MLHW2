@@ -176,7 +176,7 @@ def getInfoGain(data, meta, feature):
     else:
         nominalEntropy = getConditionalEntropy_Nominal(data, meta, feature, feature_map)
         infogain = parentEntropy - nominalEntropy
-        return infogain
+        return None, infogain
 
 def all_same(items):
     return all(x == items[0] for x in items)
@@ -222,7 +222,8 @@ def isLeafNode(data, meta, indices, node):
     # have info gain
     infogains = []
     for feature in meta.names():
-        infogains.append(getInfoGain(data[indices], meta, feature))
+        split, infogain = getInfoGain(data[indices], meta, feature) 
+        infogains.append(infogain)
     
     # are all of the values 0 or negative?
     # if so, make the leaf node here  based on consensus
@@ -251,7 +252,7 @@ def isLeafNode(data, meta, indices, node):
     
 
 
-def createNode(data, meta, indices):
+def createNode(data, meta, indices, m, featureTrack, feature_map):
     """
         This function recursively builds the tree for a given dataset,
         Returns a DTNode object.
@@ -264,11 +265,34 @@ def createNode(data, meta, indices):
 
     node = isLeafNode(data, meta, indices, node)
     if node:
+        # If it comes in here, then this means
+        # that the node is a leaf node 
+        return node
+    else:
+        # if it comes in here, that means 
+        # that this node is not a leaf node and 
+        # must be dealt with accordingly
+
+        bestFeature = None
+        bestInfoGain = 0
+        bestSplit_Numeric = None # best split in case of numeric feature
+
+        # iterate through each feature
+        for feature,ftype in zip(meta.names(), meta.types()):
+            split, infogain = getInfoGain(data, meta, feature)
+            if infogain > bestInfoGain:
+                bestInfoGain = infogain
+                bestFeature = feature
         
-
-
-    
-    
+        # once we have chosen the best feature for this node.
+        # check it off the featureTrack mapping if it
+        # is a nominal feature. 
+        if meta.types()[meta.names().index(bestFeature)] == 'nominal':
+            featureTrack[bestFeature] = True
+            
+        
+        # obtain all the children for this given feature
+        
 
     
 
@@ -283,5 +307,26 @@ def train(data, meta, m):
     # Step 1
     # call a function node to create the first node of the tree
 
+
     indices = list(range(0,200)) 
-    createNode(data, meta, indices, m)
+    feature_map = getUniqueFeatures(data, meta)
+    
+    # we need a set up that allows us to track nominal features 
+    # down lower in the branch in order to be able to ensure that
+    # a nominal feature is not used again down the tree in subtrees
+    # We will initialize each value in this nominal feature map to 
+    # false. As we go down the tree and use a certain 
+    # nominal feture, the mapping for this feature will be 
+    # set to True, so that the feature will not be evaluated
+    # for infogain. This only applies to nominal features 
+    # and not numerical features because it is possible
+    # to find a more optimal candidate split for numerical
+    # features down the tree. 
+
+
+    featureTrack = dict()
+    for feature, ftype in zip(meta.names(), meta.types()):
+        if ftype == 'nominal':
+            featureTrack[feature] = False
+
+    createNode(data, meta, indices, m, featureTrack, feature_map)
