@@ -5,8 +5,9 @@ import collections as collections
 import math
 import sys
 from DataManipulations import *
+import DTNode 
 
-
+SPLIT_CONSENSUS = "SPLIT_CONSENSUS"
 
 def getEntropyParent(data, meta):
     """
@@ -177,17 +178,101 @@ def getInfoGain(data, meta, feature):
         infogain = parentEntropy - nominalEntropy
         return infogain
 
+def all_same(items):
+    return all(x == items[0] for x in items)
 
-def createNode(data, meta):
+def getConsensusClass(data, indices):
+    
+    a = collections.Counter(data['class'][indices])
+    if all_same(list(a.values)) and len(list(a.values)) > 1:
+        consensusClass = SPLIT_CONSENSUS
+    else:
+        consensusClass = a.most_common(1)[0][0]
+    
+    return consensusClass
+
+
+def isLeafNode(data, meta, indices, node):
+    """
+        tells us whether a given dataset is a
+        leafnode or another feature branch
+        Returns the modified leaf node if 
+        the data truly represents a leaf node.
+        Else, returns None
+    """
+
+    # step 1: check if all the instances belong to the same
+    # class
+    classes = set(data['class'][indices])
+    if len(classes) == 1:
+        node.setValue(a.pop())
+        node.isLeaf = True
+        return node
+    
+    # step 2: check if the number of data points is less
+    # than m
+    if len(indices) < m:
+        consensusClass = getConsensusClass(data, indices)
+        node.setValue(consensusClass)
+        node.isLeaf = True
+        return node
+    
+    # step 3: iterate through all the feature
+    # and find out if any of the features
+    # have info gain
+    infogains = []
+    for feature in meta.names():
+        infogains.append(getInfoGain(data[indices], meta, feature))
+    
+    # are all of the values 0 or negative?
+    # if so, make the leaf node here  based on consensus
+    if all(np.array(infogains) <= 0):
+        consensusClass = getConsensusClass(data, indices)
+        node.setValue(consensusClass)
+        node.isLeaf = True
+        return node
+    
+    # Step 4: are there any more candidate splits left?
+    # for this, we need to essentially check if all of the 
+    # data values for a all features is only a single value
+    # As this would indicate that there can be no more splits
+    # made on a data set
+    feature_diversity = []
+    for feature in meta.names():
+        feature_diversity.append(len(set(data[feature][indices])))
+    
+    if (all(np.array(feature_diversity) == 1)):
+        consensusClass = getConsensusClass(data, indices)
+        node.setValue(consensusClass)
+        node.isLeaf = True
+        return node
+    
+    return None
+    
+
+
+def createNode(data, meta, indices):
     """
         This function recursively builds the tree for a given dataset,
-        Returns a DTNode object
+        Returns a DTNode object.
+
     """
+    node = DTNode() # create the tree node first
+
+    # STEP 1: Check if the data provided is 
+    # consistent with being a leafnode
+
+    node = isLeafNode(data, meta, indices, node)
+    if node:
+        
+
+
+    
     
 
     
 
-def train(data, meta):
+def train(data, meta, m):
     """
         Simple function to train the data 
     """
@@ -198,4 +283,5 @@ def train(data, meta):
     # Step 1
     # call a function node to create the first node of the tree
 
-    createNode(data, meta)
+    indices = list(range(0,200)) 
+    createNode(data, meta, indices, m)
