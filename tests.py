@@ -42,7 +42,7 @@ def testTrain():
     trainFile = "heart_train.arff"
     data, meta = readData(trainFile)
     feature_map = getUniqueFeatures(data, meta)
-    m = 5
+    m = 2
 
     rootnode = train(data, meta, m)    
 
