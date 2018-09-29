@@ -7,7 +7,7 @@ class DTNode(object):
 
     def __init__(self):
         self.feature = None
-        self.children = []
+        self.children = dict()
         self.isLeaf = False
         self.value = None
     
@@ -29,7 +29,18 @@ class DTNode(object):
 
     def setValue(self, value):
         self.value = value
+    
+    def getValue(self):
+        return self.value
 
+    def setChild(self, value, child):
+        self.children[value] = child
+    
+    def getChild(self, value):
+        return self.children[value]
+    
+    def getChildren(self):
+        return self.children
     
 
 

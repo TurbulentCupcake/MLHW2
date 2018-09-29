@@ -5,7 +5,7 @@ import collections as collections
 import math
 import sys
 from DataManipulations import *
-import DTNode 
+from DTNode import * 
 
 SPLIT_CONSENSUS = "SPLIT_CONSENSUS"
 
@@ -283,15 +283,46 @@ def createNode(data, meta, indices, m, featureTrack, feature_map):
             if infogain > bestInfoGain:
                 bestInfoGain = infogain
                 bestFeature = feature
+                bestSplit_Numeric = split
         
         # once we have chosen the best feature for this node.
         # check it off the featureTrack mapping if it
         # is a nominal feature. 
         if meta.types()[meta.names().index(bestFeature)] == 'nominal':
-            featureTrack[bestFeature] = True
             
-        
-        # obtain all the children for this given feature
+            # ensure that the tracker is switched to True
+            featureTrack[bestFeature] = True
+
+            # obtain all the children for this feature
+            branches = feature_map[bestFeature]
+
+            # for each branch value in the feature,
+            # divide up the dataset in such a manner 
+            # all of the values under that feature
+            # correspond to that branch
+
+            for branch in branches:
+                sub_indices = []
+                for index, value in enumerate(data[bestFeature]):
+                    if branch == value:
+                        sub_indices.append(index)
+
+                # RECURSIVELY CALL THE CREATENODE FUNCTION
+                # IN ORDER TO GET THE NEXT CHILD FOR 
+                # THIS BRANCH
+                childNode = createNode(data, meta, sub_indices,
+                                        featureTrack, feature_map)
+
+                # check if the child node is a leaf and if
+                # so does it have a split consensus on
+                # the data. 
+                if childNode.isLeafNode() and childNode.getValue() == SPLIT_CONSENSUS:
+                    childNode.setValue(node.)
+
+
+                node.addChild[bestFeature] = childNode
+            
+
         
 
     
