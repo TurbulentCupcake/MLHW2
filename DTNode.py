@@ -11,6 +11,9 @@ class DTNode(object):
         self.isLeaf = False
         self.value = None
         self.numeric_split = None
+        self.featuretype = None
+        self.leftchild = None
+        self.rightchild = None
     
 
     def getFeature(self):
@@ -19,7 +22,6 @@ class DTNode(object):
     def setFeature(self, feature):
         self.feature = feature
 
-    
     def isLeafNode(self):
         return self.isLeaf
 
@@ -43,6 +45,24 @@ class DTNode(object):
     
     def getNumeicSplit(self):
         return self.numeric_split
+    
+    def setFeatureType(self, featureType):
+        self.featuretype = featureType
+    
+    def getFeatureType(self):
+        return self.featuretype
+
+    def setRightChild(self, right_child):
+        self.rightchild = right_child
+    
+    def setLeftChild(self, left_child):
+        self.leftchild = left_child
+    
+    def getRightChild(self):
+        return self.rightchild
+    
+    def getLeftChild(self):
+        return self.leftchild
     
 
 
