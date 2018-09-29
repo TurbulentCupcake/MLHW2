@@ -18,7 +18,7 @@ def testGetConditionalEntropy_Nominal():
     trainFile = "heart_train.arff"
     data, meta = readData(trainFile)
     feature_map = getUniqueFeatures(data, meta)
-    
+
     for feature, featureType in zip(meta.names(), meta.types()):
         if featureType == 'nominal':
             minEntropy = getConditionalEntropy_Nominal(data, meta, feature, feature_map)
@@ -37,7 +37,14 @@ def testInfoGain():
             split, infogain = getInfoGain(data, meta, feature)
             print("Info gain for feature " + feature + " = " + str(infogain) + " | split = " + str(split))  
 
+def testTrain():
 
+    trainFile = "heart_train.arff"
+    data, meta = readData(trainFile)
+    feature_map = getUniqueFeatures(data, meta)
+    m = 5
+
+    rootnode = train(data, meta, m)    
 
 
 
@@ -45,4 +52,5 @@ if __name__ == "__main__":
 
     # testGetConditionalEntropy_Numeric()
     # testGetConditionalEntropy_Nominal()
-    testInfoGain()
+    # testInfoGain()
+    testTrain()

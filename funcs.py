@@ -7,7 +7,8 @@ import sys
 from DataManipulations import *
 from DTNode import * 
 
-SPLIT_CONSENSUS = "SPLIT_CONSENSUS"
+SPLIT_CONSENSUS = "SPLIT_CONSENSUS" # leafnode has equal number of positives and negatives
+NO_DATA = "NO_DATA" # leafnode has no data to conduct split
 
 def getEntropyParent(data, meta):
     """
@@ -192,7 +193,7 @@ def getConsensusClass(data, indices):
     return consensusClass
 
 
-def isLeafNode(data, meta, indices, node):
+def isLeafNode(data, meta, indices, m,  node):
     """
         tells us whether a given dataset is a
         leafnode or another feature branch
@@ -205,7 +206,7 @@ def isLeafNode(data, meta, indices, node):
     # class
     classes = set(data['class'][indices])
     if len(classes) == 1:
-        node.setValue(a.pop())
+        node.setValue(classes.pop())
         node.isLeaf = True
         return node
     
@@ -248,7 +249,7 @@ def isLeafNode(data, meta, indices, node):
         node.isLeaf = True
         return node
     
-    return None
+    return node
     
 
 
@@ -258,13 +259,19 @@ def createNode(data, meta, indices, m, featureTrack, feature_map):
         Returns a DTNode object.
 
     """
+    
+    print("--Creating Node")
     node = DTNode() # create the tree node first
 
-    # STEP 1: Check if the data provided is 
-    # consistent with being a leafnode
+    # check if any training data will be used for this node
+    if len(indices) == 0:
+        node.setValue(NO_DATA)
+        node.isLeaf = True
+        return node
 
-    node = isLeafNode(data, meta, indices, node)
-    if node:
+
+    node = isLeafNode(data, meta, indices, m, node)
+    if node.isLeafNode():
         # If it comes in here, then this means
         # that the node is a leaf node 
         return node
@@ -285,6 +292,14 @@ def createNode(data, meta, indices, m, featureTrack, feature_map):
                 bestFeature = feature
                 bestSplit_Numeric = split
         
+        
+        node.setFeature(bestFeature) # set the current node contain the bestFeature
+
+        node.setNumericSplit(bestSplit_Numeric) # If it is a nominal value, then the
+                                                # the split value would be none, and 
+                                                # would accordingly be set in the DTNode 
+                                                # object held by node
+
         # once we have chosen the best feature for this node.
         # check it off the featureTrack mapping if it
         # is a nominal feature. 
@@ -307,20 +322,29 @@ def createNode(data, meta, indices, m, featureTrack, feature_map):
                     if branch == value:
                         sub_indices.append(index)
 
+
                 # RECURSIVELY CALL THE CREATENODE FUNCTION
                 # IN ORDER TO GET THE NEXT CHILD FOR 
                 # THIS BRANCH
-                childNode = createNode(data, meta, sub_indices,
+                childNode = createNode(data, meta, sub_indices, m, 
                                         featureTrack, feature_map)
 
                 # check if the child node is a leaf and if
                 # so does it have a split consensus on
                 # the data. 
+                # In this case, find out what the most 
+                # occuring class label for the data
+                # passed to this node consists of.
+                # Using this information, compute
+                # which label we must assign to this case. 
                 if childNode.isLeafNode() and childNode.getValue() == SPLIT_CONSENSUS:
-                    childNode.setValue(node.)
+                    childNode.setValue(getConsensusClass(data, indices))
+                elif childNode.isLeafNode() and childNode.getValue() == NO_DATA:
+                    childNode.setValue(getConsensusClass(data, indices))
+
+                node.setChild(bestFeature,childNode)
 
 
-                node.addChild[bestFeature] = childNode
             
 
         
@@ -354,10 +378,13 @@ def train(data, meta, m):
     # to find a more optimal candidate split for numerical
     # features down the tree. 
 
+    print("||Reached Train")
 
     featureTrack = dict()
     for feature, ftype in zip(meta.names(), meta.types()):
         if ftype == 'nominal':
             featureTrack[feature] = False
 
-    createNode(data, meta, indices, m, featureTrack, feature_map)
+    print("||Creating Tree")
+    rootnode = createNode(data, meta, indices, m, featureTrack, feature_map)
+    return rootnode
