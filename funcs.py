@@ -300,6 +300,9 @@ def createNode(data, meta, indices, m, featureTrack, feature_map):
                                                 # would accordingly be set in the DTNode 
                                                 # object held by node
 
+        branches = feature_map[bestFeature]
+
+
         # once we have chosen the best feature for this node.
         # check it off the featureTrack mapping if it
         # is a nominal feature. 
@@ -309,7 +312,6 @@ def createNode(data, meta, indices, m, featureTrack, feature_map):
             featureTrack[bestFeature] = True
 
             # obtain all the children for this feature
-            branches = feature_map[bestFeature]
 
             # for each branch value in the feature,
             # divide up the dataset in such a manner 
@@ -343,6 +345,41 @@ def createNode(data, meta, indices, m, featureTrack, feature_map):
                     childNode.setValue(getConsensusClass(data, indices))
 
                 node.setChild(bestFeature,childNode)
+
+        else:
+            # In this case, we assume that the feature type is numeric
+            # So, we will have to consider the split that we calculated 
+            # at line 288, prior to reaching this part of the code. 
+            # Remember that here, we dont need to track the numeric 
+            # feature as it can be used later down the tree
+            # repeatedly if candidate splits are available. This
+            # is crucial to understand.
+
+            # In the case of nominal, we had split based on the
+            # nominal values within each of the values. 
+            # Instead here, we have to split based on the 
+            # bestSplit_Numeric that we have in this case.
+            # So, we have to create two index holders each
+            # of which hold the indices of 
+            # data that lies above and below the threshold 
+            # determined by the information gain. 
+
+            assert bestSplit_Numeric != None # ensure that if we go numeric, we get a split threshold
+
+            less_than_indices = []
+            more_than_indices = []
+
+            for i, value in enumerate(data[bestFeature]):
+                if value <= bestSplit_Numeric:
+                    less_than_indices.append(i)
+                else:
+                    more_than_indices.append(i)
+
+            
+            
+            
+
+
 
 
             
