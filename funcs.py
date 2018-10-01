@@ -419,7 +419,7 @@ def train(data, meta, m):
     # call a function node to create the first node of the tree
 
 
-    indices = list(range(0,200)) 
+    indices = list(range(0,len(data)))
     feature_map = getUniqueFeatures(data, meta)
     
     # we need a set up that allows us to track nominal features 
