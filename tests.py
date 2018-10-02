@@ -39,7 +39,7 @@ def testInfoGain():
 
 def testTrain():
 
-    trainFile = "diabetes_train.arff"
+    trainFile = "heart_train.arff"
     data, meta = readData(trainFile)
     feature_map = getUniqueFeatures(data, meta)
     m = 2

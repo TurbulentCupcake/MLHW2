@@ -14,6 +14,9 @@ class DTNode(object):
         self.featuretype = None
         self.leftchild = None
         self.rightchild = None
+        self.numPositive = 0
+        self.numNegative = 0
+        self.consensusClass = None
     
 
     def getFeature(self):

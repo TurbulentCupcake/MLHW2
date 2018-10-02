@@ -182,15 +182,33 @@ def getInfoGain(data, meta, feature):
 def all_same(items):
     return all(x == items[0] for x in items)
 
-def getConsensusClass(data, indices):
+def getConsensusClass(data, indices, returnCounts = False):
     
-    a = collections.Counter(data['class'][indices])
-    if all_same(list(a.values())) and len(list(a.values())) > 1:
-        consensusClass = SPLIT_CONSENSUS
+
+    if returnCounts:
+        a = collections.Counter(data['class'][indices])
+        if b'negative' in a.keys() and b'positive' in a.keys():
+            return [a[b'negative'], a[b'positive']]
+        elif b'negative' in a.keys() and b'positive' not in a.keys():
+            return [a[b'negative'], 0]
+        elif b'negative' not in a.keys() and b'positive' in a.keys():
+            return [0, a[b'positive']]
+        else:
+            return [0,0]
     else:
-        consensusClass = a.most_common(1)[0][0]
+        a = collections.Counter(data['class'][indices])
+        if all_same(list(a.values())) and len(list(a.values())) > 1:
+            consensusClass = SPLIT_CONSENSUS
+        else:
+            consensusClass = a.most_common(1)[0][0]
     
-    return consensusClass
+        return consensusClass
+    
+    return None
+
+
+
+
 
 
 def isLeafNode(data, meta, indices, m,  node):
@@ -306,14 +324,20 @@ def createNode(data, meta, indices, m, featureTrack, feature_map, level):
                                                 # the split value would be none, and 
                                                 # would accordingly be set in the DTNode 
                                                 # object held by node
+            
 
-        branches = feature_map[bestFeature]
+
 
         # once we have chosen the best feature for this node.
         # check it off the featureTrack mapping if it
         # is a nominal feature. 
         if meta.types()[meta.names().index(bestFeature)] == 'nominal':
             
+            fBranches = list(meta[bestFeature][1])
+            branches = []
+            for b in fBranches:
+                branches.append(b.encode('utf-8'))
+
             # ensure that the tracker is switched to True
             featureTrack[bestFeature] = True
 
@@ -329,15 +353,22 @@ def createNode(data, meta, indices, m, featureTrack, feature_map, level):
                 for index, value in enumerate(data[bestFeature][indices]):
                     if branch == value:
                         sub_indices.append(indices[index])
-                spaces = '\t\t' * level
-                print('|', spaces, ' ', bestFeature, ' ', branch, '[',len(sub_indices),']')
+
+               
+                spaces = '|\t' * level
+                print_split = getConsensusClass(data, sub_indices, True)
+                print( spaces, bestFeature,  '=', branch, '[', print_split[0], print_split[1],']')
+
 
                 # RECURSIVELY CALL THE CREATENODE FUNCTION
                 # IN ORDER TO GET THE NEXT CHILD FOR 
                 # THIS BRANCH
                 childNode = createNode(data, meta, sub_indices, m,
                                 featureTrack, feature_map, level+1)
+                
+                
 
+                
                 # check if the child node is a leaf and if
                 # so does it have a split consensus on
                 # the data. 
@@ -347,12 +378,12 @@ def createNode(data, meta, indices, m, featureTrack, feature_map, level):
                 # Using this information, compute
                 # which label we must assign to this case. 
                 if childNode.isLeafNode() and childNode.getValue() == SPLIT_CONSENSUS:
-                    childNode.setValue(getConsensusClass(data, indices))
+                    childNode.setValue(node.getValue())
                 elif childNode.isLeafNode() and childNode.getValue() == NO_DATA:
-                    childNode.setValue(getConsensusClass(data, indices))
+                    childNode.setValue(node.getValue)
 
                 node.setChild(branch, childNode)
-
+                
         else:
             # In this case, we assume that the feature type is numeric
             # So, we will have to consider the split that we calculated 
@@ -382,12 +413,16 @@ def createNode(data, meta, indices, m, featureTrack, feature_map, level):
                 else:
                     more_than_indices.append(indices[i])
 
-            spacer = '\t\t' * level
-            print('|', spacer, '| ', bestFeature, ' <=', bestSplit_Numeric, '[', len(less_than_indices),']')
-            left_childnode = createNode(data, meta, less_than_indices, m,  featureTrack, feature_map, level + 1)
-            print('|', spacer, '| ', bestFeature, ' >', bestSplit_Numeric, '[', len(more_than_indices),']')
-            right_childnode = createNode(data, meta, more_than_indices, m, featureTrack, feature_map, level + 1)
 
+            print_split = getConsensusClass(data, less_than_indices, True)
+            spaces = '|\t' * level
+            print(  spaces, bestFeature, '<=', bestSplit_Numeric, '[', print_split[0],print_split[1],']')
+            left_childnode = createNode(data, meta, less_than_indices, m,  featureTrack, feature_map, level + 1)
+
+            print_split = getConsensusClass(data, more_than_indices, True)
+            spaces = '|\t' * level
+            print(  spaces, bestFeature,  '>', bestSplit_Numeric, '[',  print_split[0],print_split[1],']')
+            right_childnode = createNode(data, meta, more_than_indices, m, featureTrack, feature_map, level + 1)
 
 
             if left_childnode.isLeafNode() and left_childnode.getValue() == SPLIT_CONSENSUS:
@@ -406,6 +441,15 @@ def createNode(data, meta, indices, m, featureTrack, feature_map, level):
         return node
 
 
+def printTree(rootnode,data,meta):
+
+    # n = rootnode:
+    # while n:
+    #     # check if n is a numeric node or nominal node
+    pass
+
+
+    
 
 def train(data, meta, m):
     """
@@ -440,5 +484,8 @@ def train(data, meta, m):
         if ftype == 'nominal':
             featureTrack[feature] = False
 
-    rootnode = createNode(data, meta, indices, m, featureTrack, feature_map,0 )
+    rootnode = createNode(data, meta, indices, m, featureTrack, feature_map, 0)
+    printTree(rootnode, data, meta)
+    
+
     return rootnode
