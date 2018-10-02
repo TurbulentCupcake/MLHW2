@@ -324,6 +324,10 @@ def createNode(data, meta, indices, m, featureTrack, feature_map, level):
                                                 # the split value would be none, and 
                                                 # would accordingly be set in the DTNode 
                                                 # object held by node
+
+        node.setValue(getConsensusClass(data, indices))
+
+
             
 
 
@@ -354,33 +358,32 @@ def createNode(data, meta, indices, m, featureTrack, feature_map, level):
                     if branch == value:
                         sub_indices.append(indices[index])
 
-               
-                spaces = '|\t' * level
-                print_split = getConsensusClass(data, sub_indices, True)
-                print( spaces, bestFeature,  '=', branch, '[', print_split[0], print_split[1],']')
 
+                # So some confusing shit is happening here.
+                # We are precalculating the split values before creating the next
+                # child because we already know what its values are going to be
+                # So just precalculate the values and store it into the node once you get it
+                # back because once the node goes into the next recursion, it
+                # is going to evaluate as split consensus. The reason for
+                # this is that when we have to display the tree in the end,
+                # we have the split data and the final value of the split
+                # when we finally correct the split consensus issue after building the tree
+
+
+
+                # spaces = '|\t' * level
+                print_split = getConsensusClass(data, sub_indices, True)
+                # print( spaces, bestFeature,  '=', branch, '[', print_split[0], print_split[1],']')
+                #
 
                 # RECURSIVELY CALL THE CREATENODE FUNCTION
                 # IN ORDER TO GET THE NEXT CHILD FOR 
                 # THIS BRANCH
                 childNode = createNode(data, meta, sub_indices, m,
                                 featureTrack, feature_map, level+1)
-                
-                
+                childNode.numNegative = print_split[0]
+                childNode.numPositive = print_split[1]
 
-                
-                # check if the child node is a leaf and if
-                # so does it have a split consensus on
-                # the data. 
-                # In this case, find out what the most 
-                # occuring class label for the data
-                # passed to this node consists of.
-                # Using this information, compute
-                # which label we must assign to this case. 
-                if childNode.isLeafNode() and childNode.getValue() == SPLIT_CONSENSUS:
-                    childNode.setValue(node.getValue())
-                elif childNode.isLeafNode() and childNode.getValue() == NO_DATA:
-                    childNode.setValue(node.getValue)
 
                 node.setChild(branch, childNode)
                 
@@ -415,25 +418,18 @@ def createNode(data, meta, indices, m, featureTrack, feature_map, level):
 
 
             print_split = getConsensusClass(data, less_than_indices, True)
-            spaces = '|\t' * level
-            print(  spaces, bestFeature, '<=', bestSplit_Numeric, '[', print_split[0],print_split[1],']')
+            # spaces = '|\t' * level
+            # print(  spaces, bestFeature, '<=', bestSplit_Numeric, '[', print_split[0],print_split[1],']')
             left_childnode = createNode(data, meta, less_than_indices, m,  featureTrack, feature_map, level + 1)
+            left_childnode.numNegative = print_split[0]
+            left_childnode.numPositive = print_split[1]
 
             print_split = getConsensusClass(data, more_than_indices, True)
-            spaces = '|\t' * level
-            print(  spaces, bestFeature,  '>', bestSplit_Numeric, '[',  print_split[0],print_split[1],']')
+            # spaces = '|\t' * level
+            # print(  spaces, bestFeature,  '>', bestSplit_Numeric, '[',  print_split[0],print_split[1],']')
             right_childnode = createNode(data, meta, more_than_indices, m, featureTrack, feature_map, level + 1)
-
-
-            if left_childnode.isLeafNode() and left_childnode.getValue() == SPLIT_CONSENSUS:
-                left_childnode.setValue(getConsensusClass(data, less_than_indices))
-            elif left_childnode.isLeafNode() and left_childnode.getValue() == NO_DATA:
-                left_childnode.setValue(getConsensusClass(data, less_than_indices))
-            
-            if right_childnode.isLeafNode() and right_childnode.getValue() == SPLIT_CONSENSUS:
-                right_childnode.setValue(getConsensusClass(data, more_than_indices))
-            elif right_childnode.isLeafNode() and right_childnode.getValue() == NO_DATA:
-                right_childnode.setValue(getConsensusClass(data, more_than_indices))
+            right_childnode.numNegative = print_split[0]
+            right_childnode.numPositive = print_split[1]
     
             node.setRightChild(right_childnode) 
             node.setLeftChild(left_childnode)
@@ -441,15 +437,138 @@ def createNode(data, meta, indices, m, featureTrack, feature_map, level):
         return node
 
 
-def printTree(rootnode,data,meta):
+
+def fix(node, level):
+    """
+
+    :param node: The root node the tree
+    :param level: start level of tree (usually 0)
+    :return: rootnode
+
+    Note: This function directly touches the data. It does not return any values
+    except at the root to the calling function. Fixing of the node values
+    take place directly in memory
+
+    """
+
+    # spacer = '|\t' * level
+    # print(spacer, node.value, node.feature, node.numNegative, node.numPositive)
+    if node.getFeatureType() == 'nominal':
+        children = node.children.values()
+        for child in children:
+            if child.getValue() == SPLIT_CONSENSUS or child.getValue() == NO_DATA:
+                child.setValue(node.getValue())
+            if not child.isLeafNode():
+                fix(child, level+1)
+
+    else:
+        if node.leftchild.value == SPLIT_CONSENSUS or node.leftchild.value == NO_DATA:
+            node.leftchild.value = node.value
+        if node.rightchild.value == SPLIT_CONSENSUS or node.rightchild.value == NO_DATA:
+            node.rightchild.value = node.value
+
+        if not node.leftchild.isLeafNode():
+            fix(node.leftchild, level+1)
+        if not node.rightchild.isLeafNode():
+            fix(node.rightchild, level+1)
+
+    return node
+
+def printTree(node,data,meta, level):
 
     # n = rootnode:
     # while n:
     #     # check if n is a numeric node or nominal node
-    pass
+    if node.getFeatureType() == 'nominal':
+        children = node.getChildren()
+        for value in children.keys():
+            spacer = level * '|\t'
+            if children[value].isLeafNode():
+                # print(spacer + '{} {} {} {}: {}'.format(node.feature, ))
+                print(spacer + str(node.feature) +  " = " +  str(value,'utf-8') +  ' [' +  str(children[value].numNegative) + ' ' +
+                       str(children[value].numPositive) + ']: ' +  str(children[value].value,'utf-8'))
+            else:
+                print(spacer +  str(node.feature) +  " = " +  str(value,'utf-8') +  ' [' +  str(children[value].numNegative) + ' ' +
+                      str(children[value].numPositive) + ']')
+
+            if not children[value].isLeafNode():
+                printTree(children[value], data, meta, level+1)
+
+    else:
+
+        if node.leftchild.isLeafNode():
+            spacer = level * '|\t'
+            print(spacer +  str(node.feature) +  " <= " +  '{:0.6f}'.format(node.numeric_split) +  ' [' +  str(node.leftchild.numNegative) + ' ' +
+                  str(node.leftchild.numPositive) +  ']: ' + str(node.leftchild.value,'utf-8'))
+        else:
+            spacer = level * '|\t'
+            print(spacer +  str(node.feature) + " <= " +  '{:0.6f}'.format(node.numeric_split)  + ' [' + str(node.leftchild.numNegative) + ' ' +
+                    str(node.leftchild.numPositive)+ ']')
+
+        if not node.leftchild.isLeafNode():
+            printTree(node.leftchild, data, meta, level+1)
 
 
-    
+        if node.rightchild.isLeafNode():
+            spacer = '|\t' * level
+            print(spacer + str(node.feature) +  " > " +  '{:0.6f}'.format(node.numeric_split) +  ' [' +  str(node.rightchild.numNegative) + ' ' +
+                  str(node.rightchild.numPositive) +  ']: ' +  str(node.rightchild.value,'utf-8'))
+        else:
+            spacer = '|\t'*level
+            print(spacer +  str(node.feature) + " > " +  '{:0.6f}'.format(node.numeric_split) + ' [' + str(node.rightchild.numNegative) + ' ' +
+                    str(node.rightchild.numPositive) + ']')
+
+        if not node.rightchild.isLeafNode():
+            printTree(node.rightchild, data, meta, level+1)
+
+def getPredictions(t, meta, tree):
+
+
+    n = tree
+    while not n.isLeafNode():
+
+        feature = n.feature # get the feature name of n
+        testValueForFeature = t[meta.names().index(feature)]  # find the value of the test set for the given feature
+        if meta.types()[meta.names().index(feature)] == 'nominal':
+            n = n.children[testValueForFeature] # locate the next child to go to for the given feature
+        else:
+            if testValueForFeature <= n.numeric_split:
+                n = n.leftchild
+            else:
+                n = n.rightchild
+
+    return n.value
+
+
+def classify(test, meta,  tree):
+    """
+    This method is used to classify data based on the learned tree
+    :param test:
+    :param tree:
+    :return:
+    """
+    Y = []
+    for t in test:
+        Y.append(getPredictions(t, meta, tree))
+    return Y
+
+
+def printPredictions(Y, data):
+
+    i = range(0, len(Y))
+    correctlyPredicted = 0
+    for x, y, pos in zip( data['class'],Y , i):
+        print(str(pos+1) +': Actual: ' +  str(x,'utf-8') +  ' Predicted: '+  str(y,'utf-8'))
+        if x == y:
+            correctlyPredicted+=1
+
+    print('Number of correctly classified: '+ str(correctlyPredicted) + ' Total number of test instances: '+ str(len(data['class'])))
+
+
+
+
+
+
 
 def train(data, meta, m):
     """
@@ -485,7 +604,14 @@ def train(data, meta, m):
             featureTrack[feature] = False
 
     rootnode = createNode(data, meta, indices, m, featureTrack, feature_map, 0)
-    printTree(rootnode, data, meta)
+
+    # now that we have the rootnode, iterate through and fix all nodes
+    # where we might have split consensus or no data
+    rootnode = fix(rootnode,0)
+    printTree(rootnode, data, meta, 0)
+
+
+
     
 
     return rootnode

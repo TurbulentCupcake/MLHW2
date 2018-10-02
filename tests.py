@@ -40,11 +40,16 @@ def testInfoGain():
 def testTrain():
 
     trainFile = "heart_train.arff"
+    testFile = "heart_test.arff"
     data, meta = readData(trainFile)
+    testData, testMeta = readData(testFile)
     feature_map = getUniqueFeatures(data, meta)
     m = 2
 
-    rootnode = train(data, meta, m)    
+    rootnode = train(data, meta, m)
+    predictions = classify(testData, testMeta, rootnode)
+    print('<Predictions for the Test Set Instances>')
+    printPredictions(predictions, testData)
 
 
 
