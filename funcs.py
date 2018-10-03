@@ -553,17 +553,29 @@ def classify(test, meta,  tree):
     return Y
 
 
-def printPredictions(Y, data):
+def printPredictions(Y, data, printData = True):
+    """
+    This function prints the predictions that
+    were correct, it also returns the number of correct
+    predictions
+    :param Y:
+    :param data:
+    :param printData:
+    :return:
+    """
 
     i = range(0, len(Y))
     correctlyPredicted = 0
     for x, y, pos in zip( data['class'],Y , i):
-        print(str(pos+1) +': Actual: ' +  str(x,'utf-8') +  ' Predicted: '+  str(y,'utf-8'))
+        if printData:
+            print(str(pos+1) +': Actual: ' +  str(x,'utf-8') +  ' Predicted: '+  str(y,'utf-8'))
         if x == y:
             correctlyPredicted+=1
 
-    print('Number of correctly classified: '+ str(correctlyPredicted) + ' Total number of test instances: '+ str(len(data['class'])))
+    if printData:
+        print('Number of correctly classified: '+ str(correctlyPredicted) + ' Total number of test instances: '+ str(len(data['class'])))
 
+    return correctlyPredicted
 
 
 
