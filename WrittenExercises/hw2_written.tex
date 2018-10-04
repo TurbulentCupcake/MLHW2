@@ -1,0 +1,178 @@
+\documentclass[a4paper]{article}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{paralist}
+\usepackage{epstopdf}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyvrb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{float}
+\usepackage{paralist}
+\usepackage[svgname]{xcolor}
+\usepackage{enumerate}
+\usepackage{array}
+\usepackage{times}
+\usepackage{url}
+\usepackage{fancyhdr}
+\usepackage{comment}
+\usepackage{environ}
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{caption}
+
+
+\urlstyle{rm}
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[]
+\newtheorem{conjecture}{Conjecture}[]
+\newtheorem{example}{Example}[]
+\newtheorem{theorem}{Theorem}[]
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+
+\floatname{algorithm}{Procedure}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\Nat}{\mathbb{N}}
+\newcommand{\br}[1]{\{#1\}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+
+\newcommand{\vc}[1]{\boldsymbol{#1}}
+\newcommand{\xv}{\vc{x}}
+\newcommand{\Sigmav}{\vc{\Sigma}}
+\newcommand{\alphav}{\vc{\alpha}}
+\newcommand{\muv}{\vc{\mu}}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+
+\def\x{\mathbf x}
+\def\y{\mathbf y}
+\def\w{\mathbf w}
+\def\v{\mathbf v}
+\def\E{\mathbb E}
+\def\V{\mathbb V}
+
+% TO SHOW SOLUTIONS, include following (else comment out):
+\newenvironment{soln}{
+    \leavevmode\color{blue}\ignorespaces
+}{}
+
+
+\hypersetup{
+%    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
+
+\geometry{
+  top=1in,            % <-- you want to adjust this
+  inner=1in,
+  outer=1in,
+  bottom=1in,
+  headheight=3em,       % <-- and this
+  headsep=2em,          % <-- and this
+  footskip=3em,
+}
+
+
+\pagestyle{fancyplain}
+\lhead{\fancyplain{}{Homework 2: Written Exercise Part}}
+\rhead{\fancyplain{}{CS 760 Machine Learning}}
+\cfoot{\thepage}
+
+\title{\textsc{Homework 2: \\ Written Exercise Part}} % Title
+
+%\newcommand{\outDate}{Aug. 31, 2016}
+%\newcommand{\dueDate}{5:30 pm, Sep. 7, 2016}
+
+
+%%% NOTE:  Replace 'NAME HERE' etc., and delete any "\red{}" wrappers (so it won't show up as red)
+
+%\author{
+%\red{$>>$NAME HERE$<<$} \\
+%\red{$>>$ID HERE$<<$}\\
+%} 
+
+\date{}
+
+\begin{document}
+
+\maketitle 
+
+
+\section{Information Theory [25/4 pts]}
+Suppose $X, Y$ are two random variables taking values in a discrete finite set $V$. Let $H(Y)$ denote the entropy of $Y$, and let $H(Y|X)$ denote the conditional entropy of $Y$ conditioned on $X$. Prove that if $X, Y$ are independent, then $H(Y)=H(Y|X)$.
+
+\begin{soln}  Solution goes here. \end{soln}
+
+
+\section{Standardizing Numeric Features [25/4 pts]}
+Standardize the data set with four points in 2 dimension: $(7, 7), (3, 7), (3, 3), (7, 3)$.
+
+\begin{soln}  Solution goes here. \end{soln}
+
+
+\section{$k$-Nearest Neighbors [25/4 pts]}
+Consider the training data set $x_1 = (7, 7), y_1 = 0; x_2 =  (3, 7), y_2 = 1; x_3 = (3, 3), y_3 = 1; x_4 = (7, 3), y_4 = 2$. Suppose the Manhattan distance is used. What is the label for $x = (0, 0)$ in the following settings? Show the calculation steps.
+\begin{enumerate}
+	\item $1$-nearest neighbors.
+	\item $3$-nearest neighbors.
+	\item $3$-nearest neighbors, distance weighted. The weight for the $i$-th neighbor $z$ is $1/d(x, z)^2$.
+\end{enumerate}
+
+\begin{soln}  Solution goes here. \end{soln}
+
+
+\section{Performance Measurements [25/4 pts]}
+Consider the following confusion matrix for 2 classes.
+
+\begin{table}[H]
+	\centering
+		\begin{tabular}{ccc}
+			& actual positive & actual negative \\
+			\hline
+			predict positive & 76 & 18\\
+			\hline
+			predict negative & 24 & 82\\
+			\hline
+		\end{tabular}
+\end{table}
+
+Compute the accuracy, error, true positive rate, false positive rate, precision, and recall. 
+
+\begin{soln}  Solution goes here. \end{soln}
+
+
+\bibliographystyle{apalike}
+
+
+%----------------------------------------------------------------------------------------
+
+
+\end{document}
